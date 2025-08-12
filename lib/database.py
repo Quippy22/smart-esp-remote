@@ -3,7 +3,7 @@ import os
 import ujson
 
 
-class deviceDB:
+class DeviceDB:
     def __init__(self):
         """
         Manages devices and their buttons stored as JSON files,
