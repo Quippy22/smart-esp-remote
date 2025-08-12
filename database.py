@@ -18,6 +18,7 @@ class deviceDB:
             - add(object, name, ir_code=None): Adds a device or button.
             - list(object): Lists all devices or buttons.
             - select(object): Selects a device or button via user input.
+            - delete(object): Deletes a device or button via user input.
 
         'object' must be either 'device' or 'button', which determines the target.
         """
@@ -41,14 +42,11 @@ class deviceDB:
             os.mkdir("jsons")
             return
 
-    def manual_input(self, object):
-        """
-        this is a temporary function,
-        used for testing until the code is moved on the board
-        """
+    def manual_input(self, object, method):
+        """temporary function for user input during testing"""
         if object == "device":
             self.list("device")
-            return int(input("Which device do you want to select? "))
+            return int(input(f"Which device do you want to {method}? "))
         else:
             self.list("button")
 
@@ -56,7 +54,7 @@ class deviceDB:
             names = list(self.buttons.keys())
 
             # return the the button's key
-            return names[int(input("Which button do you want to select? "))]
+            return names[int(input(f"Which button do you want to {method}? "))]
 
     def add(self, object, name, ir_code=None):
         if object == "device":
@@ -84,18 +82,27 @@ class deviceDB:
     def select(self, object):
         if object == "device":
             # select device by index
-            self.current_device = self.devices[self.manual_input(object)]
+            self.current_device = self.devices[self.manual_input(object, "select")]
 
             # load the buttons of current device
             with open(f"{self.path}/{self.current_device}", "r") as f:
                 self.buttons = ujson.load(f)
         else:
             # store selected values
-            name = self.manual_input(object)
+            name = self.manual_input(object, "select")
             self.current_button = {name: self.buttons[name]}
 
-    def detele(self, object, name):
+    def delete(self, object):
         if object == "device":
-            os.remove(f"{self.path}/{name}")
+            idx = self.manual_input(object, "delete")
+            os.remove(f"{self.path}/{self.devices[idx]}")
+
+            # update the list
+            self.devices = os.listdir(self.path)
         else:
-            pass
+            key = self.manual_input(object, "delete")
+            del self.buttons[key]
+
+            # update file file
+            with open(f"{self.path}/{self.current_device}", "w") as f:
+                f.write(ujson.dumps(self.buttons))
