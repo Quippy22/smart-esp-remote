@@ -6,20 +6,20 @@ import ujson
 class deviceDB:
     def __init__(self):
         """
-        Manages devices and their buttons stored as JSON files, 
+        Manages devices and their buttons stored as JSON files,
         using the 'jsons' directory to keep the project organized.
 
-        Devices are stored as separate <device_name>.json files. 
+        Devices are stored as separate <device_name>.json files.
         Each file contains a dictionary of buttons where:
             - Key: Button name (str)
             - Value: IR code (str)
 
         Methods:
-            - add(obj_type, name, ir_code=None): Adds a device or button.
-            - list(obj_type): Lists all devices or buttons.
-            - select(obj_type): Selects a device or button via user input.
+            - add(object, name, ir_code=None): Adds a device or button.
+            - list(object): Lists all devices or buttons.
+            - select(object): Selects a device or button via user input.
 
-        obj_type must be either 'device' or 'button', which determines the target.
+        'object' must be either 'device' or 'button', which determines the target.
         """
 
         self.path = "jsons"
@@ -41,9 +41,24 @@ class deviceDB:
             os.mkdir("jsons")
             return
 
-    def add(self, object, name, ir_code=None):
-        """adds a device or button to the database"""
+    def manual_input(self, object):
+        """
+        this is a temporary function,
+        used for testing until the code is moved on the board
+        """
+        if object == "device":
+            self.list("device")
+            return int(input("Which device do you want to select? "))
+        else:
+            self.list("button")
 
+            # get name of selected button
+            names = list(self.buttons.keys())
+
+            # return the the button's key
+            return names[int(input("Which button do you want to select? "))]
+
+    def add(self, object, name, ir_code=None):
         if object == "device":
             with open(f"{self.path}/{name}.json", "w") as f:
                 f.write(ujson.dumps({}))
@@ -68,22 +83,19 @@ class deviceDB:
 
     def select(self, object):
         if object == "device":
-            self.list("device")
-
             # select device by index
-            self.current_device = self.devices[
-                int(input("Which device do you want to select? "))
-            ]
+            self.current_device = self.devices[self.manual_input(object)]
 
             # load the buttons of current device
             with open(f"{self.path}/{self.current_device}", "r") as f:
                 self.buttons = ujson.load(f)
         else:
-            self.list("button")
-
-            # get name of selected button
-            names = list(self.buttons.keys())
-            name = names[int(input("Which button do you want to select? "))]
-
             # store selected values
+            name = self.manual_input(object)
             self.current_button = {name: self.buttons[name]}
+
+    def detele(self, object, name):
+        if object == "device":
+            os.remove(f"{self.path}/{name}")
+        else:
+            pass
