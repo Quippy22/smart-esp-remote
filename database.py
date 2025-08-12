@@ -42,6 +42,16 @@ class deviceDB:
             os.mkdir("jsons")
             return
 
+    def update(self):
+        """Synchronize buttons and device list with JSON files"""
+        # Update the devices list
+        self.devices = os.listdir(self.path)
+
+        # If a device is selected, update its file
+        if self.current_device:
+            with open(f"{self.path}/{self.current_device}", "w") as f:
+                f.write(ujson.dumps(self.buttons))
+
     def manual_input(self, object, method):
         """temporary function for user input during testing"""
         if object == "device":
@@ -61,15 +71,21 @@ class deviceDB:
             with open(f"{self.path}/{name}.json", "w") as f:
                 f.write(ujson.dumps({}))
 
-            # update the list of devices
-            self.devices = os.listdir(self.path)
         else:
             # add the new one
             self.buttons[name] = ir_code
 
-            # save data in file
-            with open(f"{self.path}/{self.current_device}", "w") as f:
-                f.write(ujson.dumps(self.buttons))
+        self.update()
+
+    def delete(self, object):
+        if object == "device":
+            idx = self.manual_input(object, "delete")
+            os.remove(f"{self.path}/{self.devices[idx]}")
+        else:
+            key = self.manual_input(object, "delete")
+            del self.buttons[key]
+
+        self.update()
 
     def list(self, object):
         if object == "device":
@@ -91,18 +107,3 @@ class deviceDB:
             # store selected values
             name = self.manual_input(object, "select")
             self.current_button = {name: self.buttons[name]}
-
-    def delete(self, object):
-        if object == "device":
-            idx = self.manual_input(object, "delete")
-            os.remove(f"{self.path}/{self.devices[idx]}")
-
-            # update the list
-            self.devices = os.listdir(self.path)
-        else:
-            key = self.manual_input(object, "delete")
-            del self.buttons[key]
-
-            # update file file
-            with open(f"{self.path}/{self.current_device}", "w") as f:
-                f.write(ujson.dumps(self.buttons))
