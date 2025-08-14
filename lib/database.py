@@ -1,4 +1,5 @@
 import os
+from os.path import exists
 
 import ujson
 
@@ -34,13 +35,14 @@ class DeviceDB:
 
     def check_dir(self):
         """make sure there is a directory for the json files"""
-        try:
-            if (os.stat(self.path)[0] & 0x4000) != 0:
-                # check if mode is directory
-                return
-        except OSError:
-            os.mkdir("jsons")
-            return
+        # get the base directory
+        base_dir = os.path.dirname(os.path.dirname(__file__))
+
+        # store the path
+        self.path = os.path.join(base_dir, self.path)
+
+        # make folder if it doesn't esxst
+        os.makedirs(self.path, exist_ok=True)
 
     def update(self):
         """Synchronize buttons and device list with JSON files"""
